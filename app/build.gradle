@@ -66,5 +66,7 @@ dependencies {
     //Maps Compose library
     implementation "com.google.maps.android:maps-compose:1.0.0"
     implementation "com.google.android.gms:play-services-maps:18.0.2"
+    //Runtime Permission
+    implementation 'com.google.accompanist:accompanist-permissions:0.24.13-rc'
 
 }
