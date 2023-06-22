@@ -3,18 +3,24 @@
 package com.example.dangerousmapv10
 
 
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.Icon
 import android.location.LocationManager
 import android.os.Bundle
-
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -38,6 +44,7 @@ import kotlinx.coroutines.launch
 
 var locationManager: LocationManager? = null
 
+@OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,8 +55,82 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.primary
                 ) {
+
+                    //var drawerState = rememberDrawerState(initialValue =  DrawerValue.Closed)
+                    var drawerState by remember {
+                        mutableStateOf(DrawerState(initialValue = DrawerValue.Closed))
+                    }
+                    ModalNavigationDrawer(
+                        drawerState = drawerState,
+                        drawerContent = {
+                            NavigationDrawerItem(
+                                label = { Row(modifier = Modifier.fillMaxWidth()) {
+                                    Image (painter = (painterResource(id = R.drawable.baseline_arrow_back_24)), contentDescription = "")
+                                    Text(text = "Back")
+
+                                }
+                                     },
+                                selected = false,
+                                onClick = {
+                                    drawerState = DrawerState(initialValue = DrawerValue.Closed)
+                                })
+                            NavigationDrawerItem(
+                                label = {
+                                    Row(modifier = Modifier.fillMaxWidth()) {
+                                        Image (painter = (painterResource(id = R.drawable.baseline_settings_24)), contentDescription = "")
+                                        Text(text = "Settings")
+                                    }
+
+                                },
+                                selected = false,
+                                onClick = { })
+                            NavigationDrawerItem(
+                                label = {
+                                    Row(modifier = Modifier.fillMaxWidth()) {
+                                        Image (painter = (painterResource(id = R.drawable.baseline_share_24)), contentDescription = "")
+                                        Text(text = "Share")
+                                    }
+
+                                },
+                                selected = false,
+                                onClick = { })
+                            NavigationDrawerItem(
+                                label = {
+                                    Row(modifier = Modifier.fillMaxWidth()) {
+                                        Image (painter = (painterResource(id = R.drawable.baseline_logout_24)), contentDescription = "")
+                                        Text(text = "Log Out")
+                                    }
+
+                                },
+                                selected = false,
+                                onClick = { })
+                        },
+                        gesturesEnabled = false,
+
+
+                        ) {
+                        Scaffold(topBar = {
+                            SmallTopAppBar(
+                                title = { Text(text = "My app") },
+                                navigationIcon = {
+                                    androidx.compose.material3.Icon(
+                                        imageVector = Icons.Default.Menu,
+                                        contentDescription = "none",
+                                        modifier = Modifier.clickable {
+                                            drawerState =
+                                                DrawerState(initialValue = DrawerValue.Open)
+                                        }
+                                    )
+
+                                },
+                            )
+                        }) { contentPadding ->
+                            Map(Modifier.padding(contentPadding))
+                        }
+                    }
+
                     //LoginPage()
-                    Map()
+
                 }
             }
         }
@@ -59,7 +140,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 
-fun Map() {
+fun Map(modifier: Modifier) {
     var uiSettings by remember { mutableStateOf(MapUiSettings(zoomControlsEnabled = false)) }
     var properties by remember { mutableStateOf(MapProperties(mapType = MapType.NORMAL)) }
     val singapore = LatLng(1.35, 103.87)
@@ -73,7 +154,7 @@ fun Map() {
     }
 
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(singapore, 10f)
+        position = CameraPosition.fromLatLngZoom(cairo, 10f)
     }
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -201,7 +282,10 @@ fun LoginPage() {
             }
         }
         Button(
-            onClick = { /* perform login */ },
+            onClick = {
+                print(email)
+                print(password)
+            },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF1E3C72),
                 contentColor = Color.White
@@ -222,6 +306,6 @@ fun LoginPage() {
 @Composable
 fun MapPreview() {
     DangerousMapV10Theme {
-        Map()
+        Map(Modifier)
     }
 }
