@@ -3,12 +3,19 @@
 package com.example.dangerousmapv10
 
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.Icon
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,6 +32,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dangerousmapv10.ui.theme.Black
 import com.example.dangerousmapv10.ui.theme.DangerousMapV10Theme
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -46,10 +54,31 @@ var locationManager: LocationManager? = null
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
+    private val permissionsToRequest = arrayOf(
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.CAMERA
+
+
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             DangerousMapV10Theme {
+                val viewModel = viewModel<MainViewModel>()
+                val dialogQueue = viewModel.visiblePermissionDialogQueue
+                val multiplePermissionResultLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.RequestMultiplePermissions(),
+                    onResult = { perms ->
+                        permissionsToRequest.forEach { permission ->
+                            viewModel.onPermissionResult(
+                                permission = permission,
+                                isGranted = perms[permission] == true
+                            )
+                        }
+                    }
+                )
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -60,16 +89,54 @@ class MainActivity : ComponentActivity() {
                     var drawerState by remember {
                         mutableStateOf(DrawerState(initialValue = DrawerValue.Closed))
                     }
+
+
+                    /*dialogQueue.forEach { permission ->
+                        PermissionDialog(
+                            permissionTextProvider = when (permission) {
+
+                                Manifest.permission.CAMERA -> {
+                                    CameraPermissionTextProvider()
+                                }
+
+                                Manifest.permission.ACCESS_FINE_LOCATION -> {
+                                    LocationPermissionTextProvider()
+                                }
+
+                                Manifest.permission.ACCESS_COARSE_LOCATION -> {
+                                    LocationPermissionTextProvider()
+                                }
+
+                                else -> return@forEach
+
+                            },
+                            isPermanentlyDeclined = !shouldShowRequestPermissionRationale(
+                                permission
+                            ),
+                            onDismiss = viewModel::dismissDialog,
+                            onOkClick = {
+                                viewModel.dismissDialog()
+                                multiplePermissionResultLauncher.launch(
+                                    permissionsToRequest
+                                )
+                            },
+                            onGoToAppSettingsClick = ::openAppSettings
+                        )
+                    }*/
                     ModalNavigationDrawer(
                         drawerState = drawerState,
                         drawerContent = {
                             NavigationDrawerItem(
-                                label = { Row(modifier = Modifier.fillMaxWidth()) {
-                                    Image (painter = (painterResource(id = R.drawable.baseline_arrow_back_24)), contentDescription = "")
-                                    Text(text = "Back")
+                                label = {
+                                    Row(modifier = Modifier.fillMaxWidth()) {
+                                        Image(
+                                            painter = (painterResource(id = R.drawable.baseline_arrow_back_24)),
+                                            contentDescription = ""
+                                        )
+                                        Text(text = "Back")
 
-                                }
-                                     },
+                                    }
+                                },
                                 selected = false,
                                 onClick = {
                                     drawerState = DrawerState(initialValue = DrawerValue.Closed)
@@ -77,7 +144,10 @@ class MainActivity : ComponentActivity() {
                             NavigationDrawerItem(
                                 label = {
                                     Row(modifier = Modifier.fillMaxWidth()) {
-                                        Image (painter = (painterResource(id = R.drawable.baseline_settings_24)), contentDescription = "")
+                                        Image(
+                                            painter = (painterResource(id = R.drawable.baseline_settings_24)),
+                                            contentDescription = ""
+                                        )
                                         Text(text = "Settings")
                                     }
 
@@ -87,7 +157,10 @@ class MainActivity : ComponentActivity() {
                             NavigationDrawerItem(
                                 label = {
                                     Row(modifier = Modifier.fillMaxWidth()) {
-                                        Image (painter = (painterResource(id = R.drawable.baseline_share_24)), contentDescription = "")
+                                        Image(
+                                            painter = (painterResource(id = R.drawable.baseline_share_24)),
+                                            contentDescription = ""
+                                        )
                                         Text(text = "Share")
                                     }
 
@@ -97,7 +170,10 @@ class MainActivity : ComponentActivity() {
                             NavigationDrawerItem(
                                 label = {
                                     Row(modifier = Modifier.fillMaxWidth()) {
-                                        Image (painter = (painterResource(id = R.drawable.baseline_logout_24)), contentDescription = "")
+                                        Image(
+                                            painter = (painterResource(id = R.drawable.baseline_logout_24)),
+                                            contentDescription = ""
+                                        )
                                         Text(text = "Log Out")
                                     }
 
@@ -125,11 +201,16 @@ class MainActivity : ComponentActivity() {
                                 },
                             )
                         }) { contentPadding ->
+
+
                             Map(Modifier.padding(contentPadding))
+                            //LoginPage()
+                            multiplePermissionResultLauncher.launch(permissionsToRequest)
+
                         }
                     }
 
-                    //LoginPage()
+                    //
 
                 }
             }
@@ -137,6 +218,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+fun Activity.openAppSettings() {
+    Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", packageName, null)
+    ).also(::startActivity)
+}
 
 @Composable
 
