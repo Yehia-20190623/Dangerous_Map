@@ -6,8 +6,6 @@ package com.example.dangerousmapv10
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.graphics.drawable.Drawable
-import android.graphics.drawable.Icon
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
@@ -33,6 +31,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.dangerousmapv10.API.APInterface
+import com.example.dangerousmapv10.Data.Point
 import com.example.dangerousmapv10.ui.theme.Black
 import com.example.dangerousmapv10.ui.theme.DangerousMapV10Theme
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -46,6 +46,11 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 
 //import androidx.compose.ui.text.input.PasswordTextField
@@ -224,7 +229,52 @@ fun Activity.openAppSettings() {
         Uri.fromParts("package", packageName, null)
     ).also(::startActivity)
 }
+@Composable
+fun showPoints(){
+    val points= mutableListOf<LatLng>()
+    points.add(LatLng(30.129595, 31.323411))
+    points.add(LatLng(30.128740, 31.332255))
+    points.add(LatLng(30.151854, 31.288033))
 
+
+    if (points != null) {
+        for (i in points){
+            setMarker(lat = i.latitude, long = i.longitude)
+
+        }
+    }
+
+}
+
+fun getPoints(): List<Point>? {
+    var points: List<Point>? = null
+    val retrofit = Retrofit.Builder()
+        .baseUrl("http://10.0.2.2:8080/map/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    val apiInterface = retrofit.create(APInterface::class.java)
+    val call: Call<List<Point>> = apiInterface.points
+    call.enqueue(object : Callback<List<Point>> {
+
+        override fun onResponse(call: Call<List<Point>>, response: Response<List<Point>>) {
+            var result = ""
+            points= response.body()
+
+        }
+
+        override fun onFailure(call: Call<List<Point>>, t: Throwable) {
+
+        }
+    })
+    return points
+}
+@Composable
+fun setMarker(lat:Double,long:Double){
+    val point=LatLng(lat,long)
+    Marker(state = MarkerState(point), title = "")
+
+}
 @Composable
 
 fun Map(modifier: Modifier) {
@@ -273,6 +323,7 @@ fun Map(modifier: Modifier) {
                     state = cairoState,
                     title = "this is cairo"
                 )
+                showPoints()
             }
             val coroutinScope = rememberCoroutineScope()
             Button(
