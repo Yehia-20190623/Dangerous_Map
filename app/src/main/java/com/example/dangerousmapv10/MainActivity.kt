@@ -231,12 +231,7 @@ fun Activity.openAppSettings() {
 }
 @Composable
 fun showPoints(){
-    val points= mutableListOf<LatLng>()
-    points.add(LatLng(30.129595, 31.323411))
-    points.add(LatLng(30.128740, 31.332255))
-    points.add(LatLng(30.151854, 31.288033))
-
-
+    val points= getPoints()
     if (points != null) {
         for (i in points){
             setMarker(lat = i.latitude, long = i.longitude)
@@ -253,18 +248,21 @@ fun getPoints(): List<Point>? {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
-    val apiInterface = retrofit.create(APInterface::class.java)
-    val call: Call<List<Point>> = apiInterface.points
+    val apiInterface:APInterface = retrofit.create(APInterface::class.java)
+    val call: Call<List<Point>> = apiInterface.getPoints()
     call.enqueue(object : Callback<List<Point>> {
 
         override fun onResponse(call: Call<List<Point>>, response: Response<List<Point>>) {
+            print("Response returned")
             var result = ""
             points= response.body()
-
+            for(i in points!!){
+                print(i.latitude)
+            }
         }
 
         override fun onFailure(call: Call<List<Point>>, t: Throwable) {
-
+            print("Request failed")
         }
     })
     return points
