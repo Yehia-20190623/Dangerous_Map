@@ -51,6 +51,8 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 
 //import androidx.compose.ui.text.input.PasswordTextField
@@ -230,43 +232,52 @@ fun Activity.openAppSettings() {
     ).also(::startActivity)
 }
 @Composable
-fun showPoints(){
-    val points= getPoints()
-    if (points != null) {
-        for (i in points){
-            setMarker(lat = i.latitude, long = i.longitude)
+fun showPoints() {
+    val pointsState = remember { mutableStateOf<List<Point>>(emptyList()) }
 
-        }
+    LaunchedEffect(Unit) {
+        val points = getPoints()
+        pointsState.value = points
     }
 
+    val points = pointsState.value
+    if (points.isNotEmpty()) {
+        for (point in points) {
+            setMarker(lat = point.latitude, long = point.longitude)
+        }
+    }
 }
 
-fun getPoints(): List<Point>? {
-    var points: List<Point>? = null
+suspend fun getPoints(): List<Point> {
     val retrofit = Retrofit.Builder()
         .baseUrl("http://10.0.2.2:8080/map/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
-    val apiInterface:APInterface = retrofit.create(APInterface::class.java)
+    val apiInterface: APInterface = retrofit.create(APInterface::class.java)
     val call: Call<List<Point>> = apiInterface.getPoints()
-    call.enqueue(object : Callback<List<Point>> {
 
-        override fun onResponse(call: Call<List<Point>>, response: Response<List<Point>>) {
-            print("Response returned")
-            var result = ""
-            points= response.body()
-            for(i in points!!){
-                print(i.latitude)
+    return suspendCoroutine { continuation ->
+        call.enqueue(object : Callback<List<Point>> {
+            override fun onResponse(call: Call<List<Point>>, response: Response<List<Point>>) {
+                println("Response returned")
+                val body = response.body()
+                if (body != null) {
+                    continuation.resume(body)
+                } else {
+                    continuation.resume(emptyList())
+                }
             }
-        }
 
-        override fun onFailure(call: Call<List<Point>>, t: Throwable) {
-            print("Request failed")
-        }
-    })
-    return points
+            override fun onFailure(call: Call<List<Point>>, t: Throwable) {
+                println("Request failed")
+                continuation.resume(emptyList())
+            }
+        })
+    }
 }
+
+
 @Composable
 fun setMarker(lat:Double,long:Double){
     val point=LatLng(lat,long)
