@@ -325,6 +325,21 @@ fun Map(modifier: Modifier) {
             }
             val coroutinScope = rememberCoroutineScope()
             Button(
+                onClick = {
+
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF1E3C72),
+                    contentColor = Color.White
+                ),
+                modifier = Modifier.align(Alignment.BottomEnd),
+
+
+            ) {
+                Text(text = "add point", fontSize = 20.sp)
+            }
+            val coroutinScope = rememberCoroutineScope()
+            Button(
                 modifier = Modifier.align(Alignment.BottomCenter),
 
                 onClick = {
@@ -444,4 +459,113 @@ fun MapPreview() {
     DangerousMapV10Theme {
         Map(Modifier)
     }
+}
+@Composable
+fun Register() {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF2F2F2))
+    ) {
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(horizontal = 16.dp)
+        ) {
+            Text(
+                text = "Regitser",
+                color = Color.Black,
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            val labelWidth = 80.dp
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "firstname: ",
+                    color = Color.Black,
+                    modifier = Modifier.width(labelWidth)
+                )
+                TextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    label = { Text("username       ") },
+                    colors = TextFieldDefaults.textFieldColors(
+                        textColor = Black,
+                        containerColor = Color(0xFFD3D3D3),
+                        unfocusedLabelColor = Color(0xFF696969),
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Email: ",
+                    color = Color.Black,
+                    modifier = Modifier.width(labelWidth)
+                )
+                TextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Email") },
+                    colors = TextFieldDefaults.textFieldColors(
+                        textColor = Black,
+                        containerColor = Color(0xFFD3D3D3),
+                        unfocusedLabelColor = Color(0xFF696969),
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Password: ",
+                    color = Color.Black,
+                    modifier = Modifier.width(labelWidth)
+                )
+                TextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Password") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    colors = TextFieldDefaults.textFieldColors(
+                        textColor = Black,
+                        containerColor = Color(0xFFD3D3D3),
+                        unfocusedLabelColor = Color(0xFF696969),
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
+                )
+            }
+        }
+
+        Button(
+            onClick = {
+                print(email)
+                print(password)
+                print(username)
+
+
+            },
+
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF1E3C72),
+                contentColor = Color.White
+            ),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+                .height(60.dp)
+
+        ) {
+            Text(text = "Register", fontSize = 24.sp)
+        }
+    }
+
 }
