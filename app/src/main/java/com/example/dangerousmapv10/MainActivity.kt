@@ -2,14 +2,19 @@
 
 package com.example.dangerousmapv10
 
-
 import android.Manifest
 import android.app.Activity
+import android.content.ClipData.Item
 import android.content.Intent
+import android.location.GnssAntennaInfo.Listener
 import android.location.LocationManager
 import android.net.Uri
+import android.net.http.UploadDataProvider
 import android.os.Bundle
 import android.provider.Settings
+import android.service.autofill.OnClickAction
+import android.view.View.OnClickListener
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -18,6 +23,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+//import androidx.compose.foundation.layout.BoxScopeInstance.align
+//import androidx.compose.foundation.layout.BoxScopeInstance.align
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
@@ -25,12 +32,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
 import com.example.dangerousmapv10.API.APInterface
 import com.example.dangerousmapv10.Data.Point
 import com.example.dangerousmapv10.ui.theme.Black
@@ -51,6 +61,12 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 
 
 //import androidx.compose.ui.text.input.PasswordTextField
@@ -194,7 +210,7 @@ class MainActivity : ComponentActivity() {
                             SmallTopAppBar(
                                 title = { Text(text = "My app") },
                                 navigationIcon = {
-                                    androidx.compose.material3.Icon(
+                                    Icon(
                                         imageVector = Icons.Default.Menu,
                                         contentDescription = "none",
                                         modifier = Modifier.clickable {
@@ -207,11 +223,13 @@ class MainActivity : ComponentActivity() {
                             )
                         }) { contentPadding ->
 
+                            //Addpointonmap()
+                            Map(Modifier.padding(contentPadding), navController = rememberNavController(
 
-                            Map(Modifier.padding(contentPadding))
+                            ))
                             //LoginPage()
                             multiplePermissionResultLauncher.launch(permissionsToRequest)
-
+                            nav()
                         }
                     }
 
@@ -275,7 +293,8 @@ fun setMarker(lat:Double,long:Double){
 }
 @Composable
 
-fun Map(modifier: Modifier) {
+fun Map(modifier: Modifier,navController: NavController) {
+    val isOpen =remember{ mutableStateOf(false) }
     var uiSettings by remember { mutableStateOf(MapUiSettings(zoomControlsEnabled = false)) }
     var properties by remember { mutableStateOf(MapProperties(mapType = MapType.NORMAL)) }
     val singapore = LatLng(1.35, 103.87)
@@ -323,9 +342,12 @@ fun Map(modifier: Modifier) {
                 )
                 showPoints()
             }
-            val coroutinScope = rememberCoroutineScope()
+            val coroutinScope1 = rememberCoroutineScope()
+
             Button(
+
                 onClick = {
+                        navController.navigate("addpoint")
 
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -338,9 +360,11 @@ fun Map(modifier: Modifier) {
             ) {
                 Text(text = "add point", fontSize = 20.sp)
             }
+
+
             val coroutinScope = rememberCoroutineScope()
             Button(
-                modifier = Modifier.align(Alignment.BottomCenter),
+                modifier = Modifier.align(Alignment.BottomStart),
 
                 onClick = {
                     coroutinScope.launch {
@@ -457,7 +481,7 @@ fun LoginPage() {
 @Composable
 fun MapPreview() {
     DangerousMapV10Theme {
-        Map(Modifier)
+        Map(modifier = Modifier,navController= rememberNavController())
     }
 }
 @Composable
@@ -485,7 +509,7 @@ fun Register() {
             val labelWidth = 80.dp
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "firstname: ",
+                    text = "username: ",
                     color = Color.Black,
                     modifier = Modifier.width(labelWidth)
                 )
@@ -567,5 +591,146 @@ fun Register() {
             Text(text = "Register", fontSize = 24.sp)
         }
     }
+}
+data class DropDownItem(
+    val text: String
+)
+@Composable
+fun Addpointonmap(navController: NavController) {
+    val context = LocalContext.current
+    val problemtype = arrayOf("hole", "bump", "work area")
+    var expanded by remember { mutableStateOf(false) }
+    var selectedText by remember { mutableStateOf(problemtype[0]) }
+    val problemlevel = arrayOf("high", "medium", "low")
+    var selectedlevel by remember { mutableStateOf(problemlevel[0]) }
+    var expanded1 by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            //.fillMaxHeight()
+
+            .fillMaxSize()
+            .background(Color(0xFFF2F2F2))
+            //.fillMaxWidth()
+            .padding(80.dp)
+    ) {
+
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(horizontal = 16.dp)
+        ) {
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = {
+                    expanded = !expanded
+                }
+            ) {
+                TextField(
+
+                    value = selectedText,
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = !expanded) },
+
+                    )
+                ExposedDropdownMenu(
+                    expanded = expanded,
+
+                    onDismissRequest = { expanded = false }
+
+                ) {
+                    problemtype.forEach { problem ->
+                        DropdownMenuItem(
+
+                            text = { Text(text = problem) },
+                            onClick = {
+                                selectedText = problem
+                                expanded = false
+                                Toast.makeText(context, problem, Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
+            ExposedDropdownMenuBox(
+                expanded = expanded1,
+                onExpandedChange = {
+                    expanded1 = !expanded1
+                }
+            ) {
+                TextField(
+
+                    value = selectedlevel,
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = !expanded1) },
+
+                    )
+                ExposedDropdownMenu(
+                    expanded = expanded1,
+                    onDismissRequest = { expanded1 = false }
+                ) {
+                    problemlevel.forEach { problem ->
+                        DropdownMenuItem(
+
+                            text = { Text(text = problem) },
+                            onClick = {
+                                selectedlevel = problem
+                                expanded1 = false
+                                Toast.makeText(context, problem, Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
+                }
+            }
+
+
+        }
+        Button(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            onClick = {
+
+                navController.navigate("map")
+
+            },
+
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF1E3C72),
+                contentColor = Color.White
+            ),
+
+
+            ) {
+            Text(text = "submit", fontSize = 24.sp)
+        }
+
+
+    }
+}
+
+@Composable
+fun nav(){
+    val navController= rememberNavController()
+    NavHost(navController = navController, startDestination ="map"  ){
+        composable(route ="addpoint"){
+            Addpointonmap(navController)
+        }
+        composable(route ="map"){
+            Map(modifier = Modifier,navController)
+
+        }
+    }
 
 }
+
+
+
+
+
+    
+
+
+
