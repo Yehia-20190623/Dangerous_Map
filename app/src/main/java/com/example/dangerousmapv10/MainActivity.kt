@@ -4,21 +4,19 @@ package com.example.dangerousmapv10
 
 import android.Manifest
 import android.app.Activity
-import android.content.ClipData.Item
 import android.content.Intent
-import android.location.GnssAntennaInfo.Listener
 import android.location.LocationManager
 import android.net.Uri
-import android.net.http.UploadDataProvider
 import android.os.Bundle
 import android.provider.Settings
-import android.service.autofill.OnClickAction
-import android.view.View.OnClickListener
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -62,14 +60,18 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+
+
 
 
 //import androidx.compose.ui.text.input.PasswordTextField
+
+
 
 var locationManager: LocationManager? = null
 
@@ -224,9 +226,10 @@ class MainActivity : ComponentActivity() {
                         }) { contentPadding ->
 
                             //Addpointonmap()
-                            Map(Modifier.padding(contentPadding), navController = rememberNavController(
+                            Map(Modifier.padding(contentPadding), navController = rememberNavController())
+                            //Register()
 
-                            ))
+
                             //LoginPage()
                             multiplePermissionResultLauncher.launch(permissionsToRequest)
                             nav()
@@ -499,6 +502,7 @@ fun Register() {
                 .align(Alignment.Center)
                 .padding(horizontal = 16.dp)
         ) {
+
             Text(
                 text = "Regitser",
                 color = Color.Black,
@@ -604,14 +608,12 @@ fun Addpointonmap(navController: NavController) {
     val problemlevel = arrayOf("high", "medium", "low")
     var selectedlevel by remember { mutableStateOf(problemlevel[0]) }
     var expanded1 by remember { mutableStateOf(false) }
+    var discription by remember { mutableStateOf("") }
     Box(
         modifier = Modifier
-            //.fillMaxHeight()
-
             .fillMaxSize()
             .background(Color(0xFFF2F2F2))
-            //.fillMaxWidth()
-            .padding(80.dp)
+
     ) {
 
 
@@ -686,7 +688,36 @@ fun Addpointonmap(navController: NavController) {
                     }
                 }
             }
+            val context = LocalContext.current
+            val lifecycleOwner = LocalLifecycleOwner.current
 
+
+
+
+            val labelWidth = 100.dp
+            Spacer(modifier = Modifier.height(50.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+
+                Text(
+                    text = "Discription: ",
+                    color = Color.Black,
+                    modifier = Modifier.width(labelWidth)
+                )
+                TextField(
+
+                    value = discription,
+                    onValueChange = { discription = it },
+                    label = { Text("Discription") },
+                    colors = TextFieldDefaults.textFieldColors(
+                        textColor = Black,
+                        containerColor = Color(0xFFD3D3D3),
+                        unfocusedLabelColor = Color(0xFF696969),
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
+                )
+            }
 
         }
         Button(
