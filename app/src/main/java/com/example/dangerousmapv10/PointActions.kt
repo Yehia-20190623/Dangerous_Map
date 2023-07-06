@@ -129,11 +129,7 @@ fun AddPointToMap(navController: NavController) {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
 
-                Text(
-                    text = "Discription: ",
-                    color = Color.Black,
-                    modifier = Modifier.width(labelWidth)
-                )
+
                 TextField(
 
                     value = discription,
