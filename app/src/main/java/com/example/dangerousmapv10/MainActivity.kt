@@ -41,6 +41,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.example.dangerousmapv10.API.APInterface
 import com.example.dangerousmapv10.Data.Point
+import com.example.dangerousmapv10.Map.*
 import com.example.dangerousmapv10.ui.theme.Black
 import com.example.dangerousmapv10.ui.theme.DangerousMapV10Theme
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -65,17 +66,17 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import androidx.navigation.compose.composable
-
-
+import com.example.dangerousmapv10.Location.LocationService
+import dagger.hilt.android.AndroidEntryPoint
 
 
 //import androidx.compose.ui.text.input.PasswordTextField
 
 
-
 var locationManager: LocationManager? = null
 
 @OptIn(ExperimentalMaterial3Api::class)
+
 class MainActivity : ComponentActivity() {
     private val permissionsToRequest = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -89,6 +90,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             DangerousMapV10Theme {
+                Intent(applicationContext, LocationService::class.java).apply {
+                    action = LocationService.ACTION_START
+                    startService(this)
+                }
                 val viewModel = viewModel<MainViewModel>()
                 val dialogQueue = viewModel.visiblePermissionDialogQueue
                 val multiplePermissionResultLauncher = rememberLauncherForActivityResult(
@@ -292,99 +297,6 @@ fun getPoints(): List<Point>? {
 fun setMarker(lat:Double,long:Double){
     val point=LatLng(lat,long)
     Marker(state = MarkerState(point), title = "")
-
-}
-@Composable
-
-fun Map(modifier: Modifier,navController: NavController) {
-    val isOpen =remember{ mutableStateOf(false) }
-    var uiSettings by remember { mutableStateOf(MapUiSettings(zoomControlsEnabled = false)) }
-    var properties by remember { mutableStateOf(MapProperties(mapType = MapType.NORMAL)) }
-    val singapore = LatLng(1.35, 103.87)
-    val cairo = LatLng(30.0444, 31.2357)
-    val cairoState = MarkerState(position = cairo)
-    var currLatLong by remember {
-        mutableStateOf(LatLng(1.35, 103.87))
-    }
-    var addMarkerBoolean by remember {
-        mutableStateOf(false)
-    }
-
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(cairo, 10f)
-    }
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-    ) {
-
-
-        Box(Modifier.fillMaxSize()) {
-
-            GoogleMap(
-                modifier = Modifier.matchParentSize(),
-                cameraPositionState = cameraPositionState,
-                uiSettings = uiSettings,
-                properties = properties,
-                onMapClick = {
-                    currLatLong = it
-                    addMarkerBoolean = true
-
-                }
-
-            ) {
-                if (addMarkerBoolean) {
-                    Marker(state = MarkerState(currLatLong), title = "I did it")
-
-
-                }
-
-
-                Marker(
-                    state = cairoState,
-                    title = "this is cairo"
-                )
-                showPoints()
-            }
-            val coroutinScope1 = rememberCoroutineScope()
-
-            Button(
-
-                onClick = {
-                        navController.navigate("addpoint")
-
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1E3C72),
-                    contentColor = Color.White
-                ),
-                modifier = Modifier.align(Alignment.BottomEnd),
-
-
-            ) {
-                Text(text = "add point", fontSize = 20.sp)
-            }
-
-
-            val coroutinScope = rememberCoroutineScope()
-            Button(
-                modifier = Modifier.align(Alignment.BottomStart),
-
-                onClick = {
-                    coroutinScope.launch {
-                        cameraPositionState.animate(
-                            CameraUpdateFactory.newLatLng(
-                                cairo
-                            )
-                        )
-                    }
-
-                }
-            ) {
-                Text(text = "Animate camera to Cairo", color = Color.White)
-            }
-
-        }
-    }
 
 }
 
