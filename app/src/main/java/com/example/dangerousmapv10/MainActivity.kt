@@ -49,6 +49,7 @@ class MainActivity : ComponentActivity() {
         Manifest.permission.CAMERA
     )
 
+    @ExperimentalMaterial3Api
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

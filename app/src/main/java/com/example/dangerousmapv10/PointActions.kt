@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.dangerousmapv10.ui.theme.Black
 
+@ExperimentalMaterial3Api
 @Composable
 fun AddPointToMap(navController: NavController) {
     val context = LocalContext.current

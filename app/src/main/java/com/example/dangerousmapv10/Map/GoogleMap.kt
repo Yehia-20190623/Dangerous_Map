@@ -25,7 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
-import com.example.dangerousmapv10.API.APInterface
+import com.example.dangerousmapv10.API.MapApiInterface
 import com.example.dangerousmapv10.R
 import com.example.dangerousmapv10.data.Point
 import com.example.dangerousmapv10.data.Role
@@ -218,17 +218,19 @@ fun checkForGeoFenceEntry(
 @Composable
 fun showPoints() {
     val pointsState = remember { mutableStateOf<List<Point>>(emptyList()) }
+
     LaunchedEffect(Unit) {
         val points = getPoints()
         pointsState.value = points
     }
+
     val points = pointsState.value
     if (points.isNotEmpty()) {
         for (point in points) {
             setMarker(lat = point.latitude, long = point.longitude)
-
         }
     }
+
     /*
 
         points= getPoints()
@@ -254,13 +256,12 @@ fun showPoints() {
 
 suspend fun getPoints(): List<Point> {
     val retrofit = Retrofit.Builder()
-        .baseUrl("http://localhost:8080/map/")
+        .baseUrl("http://10.0.2.2:8080/map/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
-    val apiInterface: APInterface = retrofit.create(APInterface::class.java)
+    val apiInterface: MapApiInterface = retrofit.create(MapApiInterface::class.java)
     val call: Call<List<Point>> = apiInterface.getPoints()
-
     return suspendCoroutine { continuation ->
         call.enqueue(object : Callback<List<Point>> {
             override fun onResponse(call: Call<List<Point>>, response: Response<List<Point>>) {
@@ -277,8 +278,9 @@ suspend fun getPoints(): List<Point> {
                 println("Request failed")
                 continuation.resume(emptyList())
             }
-        })
-    }
+            })
+        }
+
 }
 
 @Composable
