@@ -1,33 +1,23 @@
-package com.example.dangerousmapv10.Location
+package com.example.dangerousmapv10.location
 
-import android.annotation.SuppressLint
-import android.app.Notification
+
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.NotificationCompat
+import com.example.dangerousmapv10.Map.checkForGeoFenceEntry
 import com.example.dangerousmapv10.R
-
+import com.example.dangerousmapv10.points
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.CameraPositionState
-import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 
 class LocationService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -67,13 +57,18 @@ class LocationService : Service() {
         locationClient.getLocationUpdates(100L)
             .catch { e -> e.printStackTrace() }
             .onEach { location ->
-                objLat.value=location.latitude
-                objLong.value=location.longitude
+
                 val lat = location.latitude.toString().takeLast(3)
                 val long = location.longitude.toString().takeLast(3)
                 val updatedNotification = notification.setContentText(
                     "Location: ($lat,$long)"
                 )
+                if (points!=null){
+                    for (point in points!!){
+                        checkForGeoFenceEntry(location,point.latitude,point.longitude,150.0)
+                    }
+
+                }
                 notificationManager.notify(1, updatedNotification.build())
 
             }
@@ -83,12 +78,10 @@ class LocationService : Service() {
 
     }
 
+    @Suppress("DEPRECATION")
     private fun stop() {
         stopForeground(true)
         stopSelf()
-
-    }
-    fun getLocation(){
 
     }
 
@@ -100,8 +93,7 @@ class LocationService : Service() {
     companion object {
         const val ACTION_START = "ACTION_START"
         const val ACTION_STOP = "ACTION_STOP"
-         var objLat= mutableStateOf<Double>(0.0)
-        var objLong=mutableStateOf<Double>(0.0)
+
     }
 
 }

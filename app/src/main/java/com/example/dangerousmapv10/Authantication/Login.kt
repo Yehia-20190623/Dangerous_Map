@@ -1,6 +1,7 @@
 package com.example.dangerousmapv10.Authantication
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.dangerousmapv10.isLoggedIn
 import com.example.dangerousmapv10.ui.theme.Black
 
 
@@ -97,6 +99,7 @@ fun LoginPage() {
             onClick = {
                 print(email)
                 print(password)
+                isLoggedIn=true
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF1E3C72),

@@ -11,6 +11,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,13 +23,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.dangerousmapv10.API.APInterface
 import com.example.dangerousmapv10.R
+import com.example.dangerousmapv10.data.Point
+import com.example.dangerousmapv10.data.Role
+import com.example.dangerousmapv10.hasLocationPermission
+import com.example.dangerousmapv10.isAdmin
+import com.example.dangerousmapv10.points
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.SphericalUtil
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapEffect
 import com.google.maps.android.compose.MapProperties
@@ -43,10 +53,13 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
+
 @SuppressLint("MissingPermission")
-fun getCurrentLocation(context: Context):Location?{
-    val client=LocationServices.getFusedLocationProviderClient(context)
-    client.lastLocation.addOnSuccessListener { location:Location?->
+fun getCurrentLocation(context: Context): Location? {
+    val client = LocationServices.getFusedLocationProviderClient(context)
+    client.lastLocation.addOnSuccessListener { location: Location? ->
         return@addOnSuccessListener
     }
     return null
@@ -56,19 +69,35 @@ fun getCurrentLocation(context: Context):Location?{
 @SuppressLint("MissingPermission")
 @Composable
 fun Map(modifier: Modifier, navController: NavController) {
+    val context = LocalContext.current
+    var isLocationEnabled by remember {
+        mutableStateOf(context.hasLocationPermission())
+    }
+    var map: GoogleMap
     val coroutinScope = rememberCoroutineScope()
-    val client=LocationServices.getFusedLocationProviderClient(LocalContext.current)
+    val client = LocationServices.getFusedLocationProviderClient(context)
     var uiSettings by remember { mutableStateOf(MapUiSettings(zoomControlsEnabled = false)) }
     var properties by remember {
         mutableStateOf(
-            MapProperties(
-                mapType = MapType.NORMAL,
-                isMyLocationEnabled = true
-            )
+            if (isLocationEnabled) {
+                isLocationEnabled = context.hasLocationPermission()
+                MapProperties(
+                    mapType = MapType.NORMAL,
+                    isMyLocationEnabled = true
+                )
+            } else {
+                isLocationEnabled = context.hasLocationPermission()
+                MapProperties(
+                    mapType = MapType.NORMAL,
+                    isMyLocationEnabled = false
+                )
+            }
+
         )
     }
     val cairo = LatLng(30.0444, 31.2357)
     val cameraPositionState = rememberCameraPositionState {
+
         position = CameraPosition.fromLatLngZoom(cairo, 15f)
     }
     Box(Modifier.fillMaxSize()) {
@@ -83,14 +112,25 @@ fun Map(modifier: Modifier, navController: NavController) {
         ) {
 
 
-
             MapEffect { map ->
-                // map is the GoogleMap
-                client.lastLocation.addOnSuccessListener { location:Location?->
-                    if (location!=null){
-                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude,location.longitude),15f))
+                // map is the
+                if (context.hasLocationPermission()) {
+                    client.lastLocation.addOnSuccessListener { location: Location? ->
+                        if (location != null) {
+                            map.moveCamera(
+                                CameraUpdateFactory.newLatLngZoom(
+                                    LatLng(
+                                        location.latitude,
+                                        location.longitude
+                                    ), 15f
+                                )
+                            )
+
+                        }
                     }
+
                 }
+
 
             }
 
@@ -98,93 +138,152 @@ fun Map(modifier: Modifier, navController: NavController) {
         }
 
         Column(modifier = Modifier.align(Alignment.BottomEnd)) {
-            Button(onClick = {
-
-                    client.lastLocation.addOnSuccessListener { location:Location?->
-                        if (location!=null){
-                            coroutinScope.launch {
-                                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude,location.longitude),15f))
-                            }
-                        }
-                    }
-             }, colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1E3C72),
-                contentColor = Color.White
-            ),) {
-                Image(
-                    painter = (painterResource(id = R.drawable.baseline_location_searching_24)),
-                    contentDescription = ""
-                )
-
-            }
             Button(
-
                 onClick = {
-                    navController.navigate("addpoint")
+                    if (context.hasLocationPermission()) {
+                        client.lastLocation.addOnSuccessListener { location: Location? ->
+                            if (location != null) {
+                                coroutinScope.launch {
+                                    cameraPositionState.animate(
+                                        CameraUpdateFactory.newLatLngZoom(
+                                            LatLng(location.latitude, location.longitude),
+                                            15f
+                                        )
+                                    )
+                                }
+                            }
+
+                        }
+
+                    }
 
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF1E3C72),
                     contentColor = Color.White
                 ),
+            ) {
+                Image(
+                    painter = (painterResource(id = R.drawable.baseline_location_searching_24)),
+                    contentDescription = ""
+                )
+
+            }
+            if (isAdmin.equals(Role.ADMIN)){
+                //TODO add removePoint Button
+            }
+            else{
+                Button(
+
+                    onClick = {
+                        navController.navigate("addpoint")
+
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF1E3C72),
+                        contentColor = Color.White
+                    ),
                 ) {
-                Text(text = "add point", fontSize = 20.sp)
+                    Text(text = "add point", fontSize = 20.sp)
+                }
+
             }
 
         }
 
 
-
     }
 
 
 }
 
+fun checkForGeoFenceEntry(
+    userLocation: Location,
+    geofenceLat: Double,
+    geofenceLong: Double,
+    radius: Double,
+) {
+    val startLatLng = LatLng(userLocation.latitude, userLocation.longitude) // User Location
+    val geofenceLatLng = LatLng(geofenceLat, geofenceLong) // Center of geofence
 
+    val distanceInMeters = SphericalUtil.computeDistanceBetween(startLatLng, geofenceLatLng)
 
+    if (distanceInMeters < radius) {
+        // User is inside the Geo-fence
+
+    }
+}
 
 
 @Composable
-fun showPoints(){
-    val points= getPoints()
-    if (points != null) {
-        for (i in points){
-            setMarker(lat = i.latitude, long = i.longitude)
+fun showPoints() {
+    val pointsState = remember { mutableStateOf<List<Point>>(emptyList()) }
+    LaunchedEffect(Unit) {
+        val points = getPoints()
+        pointsState.value = points
+    }
+    val points = pointsState.value
+    if (points.isNotEmpty()) {
+        for (point in points) {
+            setMarker(lat = point.latitude, long = point.longitude)
 
         }
     }
+    /*
+
+        points= getPoints()
+        if (points != null) {
+            for (i in points!!){
+                setMarker(lat = i.latitude, long = i.longitude)
+                MapEffect{
+                    map->
+                    map.addCircle(
+                        CircleOptions()
+                            .center(LatLng(i.latitude,i.longitude))
+                            .radius(150.0)
+                            .fillColor(ContextCompat.getColor(context, R.color.teal_200))
+                            .strokeColor(ContextCompat.getColor(context, R.color.teal_200))
+
+                    )
+                }
+
+            }
+        }*/
 
 }
 
-fun getPoints(): List<com.example.dangerousmapv10.Data.Point>? {
-    var points: List<com.example.dangerousmapv10.Data.Point>? = null
+suspend fun getPoints(): List<Point> {
     val retrofit = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:8080/map/")
+        .baseUrl("http://localhost:8080/map/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
     val apiInterface: APInterface = retrofit.create(APInterface::class.java)
-    val call: Call<List<com.example.dangerousmapv10.Data.Point>> = apiInterface.getPoints()
-    call.enqueue(object : Callback<List<com.example.dangerousmapv10.Data.Point>> {
+    val call: Call<List<Point>> = apiInterface.getPoints()
 
-        override fun onResponse(call: Call<List<com.example.dangerousmapv10.Data.Point>>, response: Response<List<com.example.dangerousmapv10.Data.Point>>) {
-            print("Response returned")
-            var result = ""
-            points= response.body()
-            for(i in points!!){
-                print(i.latitude)
+    return suspendCoroutine { continuation ->
+        call.enqueue(object : Callback<List<Point>> {
+            override fun onResponse(call: Call<List<Point>>, response: Response<List<Point>>) {
+                println("Response returned")
+                val body = response.body()
+                if (body != null) {
+                    continuation.resume(body)
+                } else {
+                    continuation.resume(emptyList())
+                }
             }
-        }
 
-        override fun onFailure(call: Call<List<com.example.dangerousmapv10.Data.Point>>, t: Throwable) {
-            print("Request failed")
-        }
-    })
-    return points
+            override fun onFailure(call: Call<List<Point>>, t: Throwable) {
+                println("Request failed")
+                continuation.resume(emptyList())
+            }
+        })
+    }
 }
+
 @Composable
-fun setMarker(lat:Double,long:Double){
-    val point=LatLng(lat,long)
+fun setMarker(lat: Double, long: Double) {
+    val point = LatLng(lat, long)
     Marker(state = MarkerState(point), title = "")
 
 }

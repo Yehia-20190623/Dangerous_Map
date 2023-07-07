@@ -1,6 +1,5 @@
-package com.example.dangerousmapv10.Location
+package com.example.dangerousmapv10.location
 
-import android.location.GnssNavigationMessage
 import android.location.Location
 import kotlinx.coroutines.flow.Flow
 
