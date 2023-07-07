@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 
 package com.example.dangerousmapv10
 
@@ -7,7 +7,9 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.Contacts.Intents.UI
 import android.provider.Settings
+import android.text.BoringLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -28,13 +30,22 @@ import androidx.navigation.compose.rememberNavController
 import com.example.dangerousmapv10.Map.*
 import com.example.dangerousmapv10.ui.theme.DangerousMapV10Theme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.composable
-import com.example.dangerousmapv10.Location.LocationService
+import com.example.dangerousmapv10.data.Point
+import com.example.dangerousmapv10.data.Role
+import com.example.dangerousmapv10.ui.theme.DarkBlue
+import com.example.dangerousmapv10.ui.theme.LightBlue
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
+var points:List<Point>?=null
+var isAdmin: Role = Role.ADMIN
+var isLoggedIn:Boolean=false
 class MainActivity : ComponentActivity() {
     private val permissionsToRequest = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
-        Manifest.permission.ACCESS_COARSE_LOCATION,
+        //Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.CAMERA
     )
 
@@ -42,10 +53,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             DangerousMapV10Theme {
-                Intent(applicationContext, LocationService::class.java).apply {
-                    action = LocationService.ACTION_START
-                    startService(this)
-                }
+
                 val viewModel = viewModel<MainViewModel>()
                 val dialogQueue = viewModel.visiblePermissionDialogQueue
                 val multiplePermissionResultLauncher = rememberLauncherForActivityResult(
@@ -104,6 +112,8 @@ class MainActivity : ComponentActivity() {
                     }*/
                     ModalNavigationDrawer(
                         drawerState = drawerState,
+                        drawerContainerColor = DarkBlue,
+                        drawerContentColor = Color.White,
                         drawerContent = {
                             NavigationDrawerItem(
                                 label = {
@@ -116,10 +126,13 @@ class MainActivity : ComponentActivity() {
 
                                     }
                                 },
+
                                 selected = false,
                                 onClick = {
                                     drawerState = DrawerState(initialValue = DrawerValue.Closed)
                                 })
+                            Spacer(modifier = Modifier.height(8.dp))
+
                             NavigationDrawerItem(
                                 label = {
                                     Row(modifier = Modifier.fillMaxWidth()) {
@@ -133,6 +146,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 selected = false,
                                 onClick = { })
+                            Spacer(modifier = Modifier.height(8.dp))
                             NavigationDrawerItem(
                                 label = {
                                     Row(modifier = Modifier.fillMaxWidth()) {
@@ -145,6 +159,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 selected = false,
                                 onClick = { })
+                            Spacer(modifier = Modifier.height(8.dp))
                             NavigationDrawerItem(
                                 label = {
                                     Row(modifier = Modifier.fillMaxWidth()) {
@@ -161,9 +176,11 @@ class MainActivity : ComponentActivity() {
                         },
                         gesturesEnabled = false,
                         ) {
-                        Scaffold(topBar = {
+                        Scaffold(containerColor = Color.Black,
+                            topBar = {
                             SmallTopAppBar(
                                 title = { Text(text = "My app") },
+
                                 navigationIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Menu,
@@ -177,7 +194,11 @@ class MainActivity : ComponentActivity() {
                                 },
                             )
                         }) { contentPadding ->
-                            Map(Modifier.padding(contentPadding), navController = rememberNavController())
+                            if (applicationContext.hasLocationPermission()){
+                                Map(Modifier.padding(contentPadding), navController = rememberNavController())
+                            }
+
+
                             multiplePermissionResultLauncher.launch(permissionsToRequest)
                             nav()
                         }

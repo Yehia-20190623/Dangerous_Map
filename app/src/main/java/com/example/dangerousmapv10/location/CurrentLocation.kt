@@ -1,4 +1,4 @@
-package com.example.dangerousmapv10.Location
+package com.example.dangerousmapv10.location
 
 
 import androidx.compose.runtime.mutableStateOf

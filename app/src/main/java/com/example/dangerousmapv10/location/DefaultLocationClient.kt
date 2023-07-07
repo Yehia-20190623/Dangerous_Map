@@ -1,4 +1,4 @@
-package com.example.dangerousmapv10.Location
+package com.example.dangerousmapv10.location
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -10,8 +10,6 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
-import com.google.maps.android.compose.CameraPositionState
-import com.google.maps.android.compose.MapEffect
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -26,7 +24,8 @@ class DefaultLocationClient(
     override fun getLocationUpdates(interval: Long): Flow<Location> {
         return callbackFlow {
             if (!context.hasLocationPermission()) {
-                throw LocationClient.LocationException("missing Location permission")
+
+               throw LocationClient.LocationException("missing Location permission")
             }
             val locationManager =
                 context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
