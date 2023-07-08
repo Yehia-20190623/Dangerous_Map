@@ -6,6 +6,7 @@ plugins {
 
 
     id 'kotlin-kapt'
+    id 'com.google.gms.google-services'
 
 }
 
@@ -62,6 +63,7 @@ dependencies {
     implementation 'androidx.compose.material3:material3:1.0.0-alpha11'
     implementation 'androidx.core:core-ktx:+'
     implementation 'androidx.appcompat:appcompat:1.6.0'
+    implementation 'com.google.firebase:firebase-auth-ktx:21.0.3'
 
 
     testImplementation 'junit:junit:4.13.2'
@@ -97,10 +99,10 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:21.0.1'
 
 
-
     // Needed if targeting API > 31 (Android 12+)
     implementation "androidx.work:work-runtime-ktx:2.8.1"
-  
+
+
 
 
 }

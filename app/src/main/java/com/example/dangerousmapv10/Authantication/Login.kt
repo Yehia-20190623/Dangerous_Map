@@ -1,7 +1,9 @@
 package com.example.dangerousmapv10.Authantication
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -20,17 +22,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.dangerousmapv10.R
 import com.example.dangerousmapv10.isLoggedIn
+import com.example.dangerousmapv10.loggedInUser
+import com.example.dangerousmapv10.mAuth
 import com.example.dangerousmapv10.ui.theme.Black
+import com.google.firebase.auth.FirebaseAuth
 
 
 @Composable
-fun LoginPage() {
+fun LoginPage(nav:NavController) {
+    val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -114,12 +122,42 @@ fun LoginPage() {
                     )
                 )
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text="Don't have Account?",
+                color = Color.White,
+                modifier = Modifier.clickable {
+                    nav.navigate("register")
+                }.align(Alignment.CenterHorizontally)
+                )
         }
         Button(
             onClick = {
-                print(email)
-                print(password)
-                isLoggedIn=true
+                if (email.isEmpty() || password.isEmpty()) {
+                    if (email.isEmpty()) {
+                        Toast.makeText(context, "Please Enter The Email", Toast.LENGTH_SHORT).show()
+                    }
+                    if (password.isEmpty()) {
+                        Toast.makeText(context, "Please Enter The Password", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                } else {
+                    mAuth.signInWithEmailAndPassword(email, password)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                Toast.makeText(context, "Login Successfully", Toast.LENGTH_LONG).show()
+                                //nav.navigate("addpoint")
+                                nav.navigateUp()
+                                isLoggedIn.value = true
+                                loggedInUser =mAuth.currentUser
+                            } else {
+                                // If sign in fails, display a message to the user.
+                                Toast.makeText(context, "Email or password is invalid" + task.exception, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
+                }
+
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.White,

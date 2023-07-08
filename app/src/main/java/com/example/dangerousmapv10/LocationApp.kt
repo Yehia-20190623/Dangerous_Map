@@ -17,6 +17,12 @@ class LocationApp :Application(){
             )
             val notificationManager=getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
+            val warningChannel=NotificationChannel(
+                "warning_notify_id",
+                "WarningNotifyId",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            notificationManager.createNotificationChannel(warningChannel)
         }
     }
 }

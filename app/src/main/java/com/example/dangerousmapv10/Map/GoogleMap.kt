@@ -31,6 +31,8 @@ import com.example.dangerousmapv10.data.Point
 import com.example.dangerousmapv10.data.Role
 import com.example.dangerousmapv10.hasLocationPermission
 import com.example.dangerousmapv10.isAdmin
+import com.example.dangerousmapv10.isLoggedIn
+import com.example.dangerousmapv10.nearestPoint
 import com.example.dangerousmapv10.points
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -169,50 +171,24 @@ fun Map(modifier: Modifier, navController: NavController) {
                 )
 
             }
-           /* if (isAdmin.equals(Role.ADMIN)){
-                Button(
 
-                    onClick = {
-
-
-
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1E3C72),
-                        contentColor = Color.White
-                    ),
-                ) {
-                    Text(text = "removePoint", fontSize = 20.sp)
-                }
-            }
-            else{
-                Button(
-
-                    onClick = {
-                        navController.navigate("addpoint")
-
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1E3C72),
-                        contentColor = Color.White
-                    ),
-                ) {
-                    Text(text = "add point", fontSize = 20.sp)
-                }
-
-            }*/
             Button(
 
                 onClick = {
-                    navController.navigate("addpoint")
-
+                    if(!isLoggedIn.value)
+                        navController.navigate("login")
+                    else
+                        navController.navigate("addpoint")
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF1E3C72),
                     contentColor = Color.White
                 ),
             ) {
-                Text(text = "add point", fontSize = 20.sp)
+                Image(
+                    painter = (painterResource(id = R.drawable.baseline_add_24)),
+                    contentDescription = ""
+                )
             }
 
         }
@@ -225,66 +201,67 @@ fun Map(modifier: Modifier, navController: NavController) {
 
 fun checkForGeoFenceEntry(
     userLocation: Location,
-    geofenceLat: Double,
-    geofenceLong: Double,
+    point: Point,
     radius: Double,
-) {
-    val startLatLng = LatLng(userLocation.latitude, userLocation.longitude) // User Location
-    val geofenceLatLng = LatLng(geofenceLat, geofenceLong) // Center of geofence
+) :Boolean{
 
-    val distanceInMeters = SphericalUtil.computeDistanceBetween(startLatLng, geofenceLatLng)
+    val startLatLng = LatLng(userLocation.latitude, userLocation.longitude) // User Location
+    val geofenceLatLng = LatLng(point.latitude, point.longitude) // Center of geofence
+
+    val distanceInMeters = SphericalUtil
+        .computeDistanceBetween(startLatLng, geofenceLatLng)
 
     if (distanceInMeters < radius) {
-        // User is inside the Geo-fence
+        if (nearestPoint!=null){
+            if (point == nearestPoint){
+                return false
+            }
+        }
 
+        nearestPoint=point
+        return true
     }
+    return false
 }
 
 
 @Composable
 fun showPoints() {
     val pointsState = remember { mutableStateOf<List<Point>>(emptyList()) }
-
+    val context= LocalContext.current
     LaunchedEffect(Unit) {
         val points = getPoints()
         pointsState.value = points
     }
 
-    val points = pointsState.value
+    points = pointsState.value
     if (points.isNotEmpty()) {
         for (point in points) {
-            setMarker(lat = point.latitude, long = point.longitude)
+            Marker(state = MarkerState(LatLng(point.latitude,point.longitude)))
+            //setMarker(lat = point.latitude, long = point.longitude)
+            MapEffect{
+                    map->
+                map.addCircle(
+                    CircleOptions()
+                        .center(LatLng(point.latitude,point.longitude))
+                        .radius(150.0)
+                        .fillColor(ContextCompat.getColor(context, R.color.teal_200))
+
+
+                )
+            }
         }
     }
 
-    /*
-
-        points= getPoints()
-        if (points != null) {
-            for (i in points!!){
-                setMarker(lat = i.latitude, long = i.longitude)
-                MapEffect{
-                    map->
-                    map.addCircle(
-                        CircleOptions()
-                            .center(LatLng(i.latitude,i.longitude))
-                            .radius(150.0)
-                            .fillColor(ContextCompat.getColor(context, R.color.teal_200))
-                            .strokeColor(ContextCompat.getColor(context, R.color.teal_200))
-
-                    )
-                }
-
-            }
-        }*/
 
 }
 
 suspend fun getPoints(): List<Point> {
     val retrofit = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:8080/map/")
+        .baseUrl("http://192.168.1.197:8080/map/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
+
 
     val apiInterface: MapApiInterface = retrofit.create(MapApiInterface::class.java)
     val call: Call<List<Point>> = apiInterface.getPoints()

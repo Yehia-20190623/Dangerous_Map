@@ -8,10 +8,11 @@ enum class Type{
 
 
 class Point {
-    var id:Int = 0
-    var dangerousLevel:Level=Level.LOW
-    var dangerousType:Type=Type.SPEED_BUMP
-    var description:String=""
+    var userid = 0
+    var dangerLevel: String = ""
+    var dangerousType: String = ""
+    var description: String = ""
     var latitude = 0.0
     var longitude = 0.0
+
 }

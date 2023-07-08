@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "293323045245",
+    "project_id": "dangerous-map-dbce3",
+    "storage_bucket": "dangerous-map-dbce3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:293323045245:android:4888e05a4eb7ccc80ab414",
+        "android_client_info": {
+          "package_name": "com.example.dangerousmapv10"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "293323045245-egfpc0ntvh0ugf882rstrjh6ghptpblu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAALbcVU15LCOxf7KRE2EYeq3OWaENccio"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "293323045245-egfpc0ntvh0ugf882rstrjh6ghptpblu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

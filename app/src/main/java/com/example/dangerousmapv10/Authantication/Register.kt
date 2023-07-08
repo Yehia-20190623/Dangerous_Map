@@ -1,5 +1,6 @@
 package com.example.dangerousmapv10.Authantication
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -19,16 +20,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.Navigation
 import com.example.dangerousmapv10.R
+import com.example.dangerousmapv10.mAuth
 import com.example.dangerousmapv10.ui.theme.Black
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseAuth
 
 
 @Composable
-fun Register() {
+fun Register(nav:NavController) {
+    val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
@@ -148,9 +157,27 @@ fun Register() {
 
         Button(
             onClick = {
-                print(email)
-                print(password)
-                print(username)
+                if (email.isEmpty() || password.isEmpty()) {
+                    if (email.isEmpty()) {
+                        Toast.makeText(context, "Please Enter The Email", Toast.LENGTH_SHORT).show()
+                    }
+                    if (password.isEmpty()) {
+                        Toast.makeText(context, "Please Enter The Password", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                } else {
+                    mAuth.createUserWithEmailAndPassword(email, password)
+                        .addOnCompleteListener(OnCompleteListener<AuthResult?> { task ->
+                            if (task.isSuccessful) {
+                                Toast.makeText(context, "Registered Successfully", Toast.LENGTH_LONG).show()
+                                nav.navigateUp()
+                            } else {
+                                // If sign in fails, display a message to the user.
+                            }
+                        })
+
+                }
+
 
 
             },

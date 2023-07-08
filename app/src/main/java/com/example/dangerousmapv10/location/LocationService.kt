@@ -9,6 +9,7 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.example.dangerousmapv10.Map.checkForGeoFenceEntry
 import com.example.dangerousmapv10.R
+import com.example.dangerousmapv10.nearestPoint
 import com.example.dangerousmapv10.points
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
@@ -46,11 +47,17 @@ class LocationService : Service() {
 
 
     private fun start() {
+
         val notification = NotificationCompat.Builder(this, "location")
             .setContentTitle("Tracking location...")
             .setContentText("Location: null")
             .setSmallIcon(R.drawable.ic_launcher_background)
             .setOngoing(true)
+        val warningNotification = NotificationCompat.Builder(this, "warning_notify_id")
+            .setContentTitle("Caution")
+            .setContentText("")
+            .setSmallIcon(R.drawable.baseline_warning_24)
+
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -65,7 +72,13 @@ class LocationService : Service() {
                 )
                 if (points!=null){
                     for (point in points!!){
-                        checkForGeoFenceEntry(location,point.latitude,point.longitude,150.0)
+                        if(checkForGeoFenceEntry(location,point,150.0)){
+                            val updateWarningNotification=warningNotification.setContentText("Caution their is ${point.dangerousType} ahead")
+                            notificationManager.notify(10,warningNotification.build())
+                        }
+
+
+
                     }
 
                 }

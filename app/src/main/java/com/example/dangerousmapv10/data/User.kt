@@ -1,6 +1,6 @@
 package com.example.dangerousmapv10.data
 
-import retrofit2.http.GET
+
 
 enum class Role{
     USER,ADMIN
