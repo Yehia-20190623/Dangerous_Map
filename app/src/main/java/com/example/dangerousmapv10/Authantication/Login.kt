@@ -1,15 +1,10 @@
 package com.example.dangerousmapv10.Authantication
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -23,10 +18,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.dangerousmapv10.R
 import com.example.dangerousmapv10.isLoggedIn
 import com.example.dangerousmapv10.ui.theme.Black
 
@@ -37,18 +35,40 @@ fun LoginPage() {
     var password by remember { mutableStateOf("") }
 
     Box(
+
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF2F2F2))
+            .background(Color(0xFF1D3B71))
+
+
+
     ) {
+
+
+
+
         Column(
             modifier = Modifier
                 .align(Alignment.Center)
                 .padding(horizontal = 16.dp)
+
         ) {
+
+            Image(
+
+                painter = painterResource(id = R.drawable.imj),
+                contentDescription =null,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+
+
+                    .size(150.dp)
+                    .clip(CircleShape)
+
+            )
+            Spacer(modifier = Modifier.height(50.dp))
             Text(
-                text = "Login",
-                color = Color.Black,
+                text = "Welcome Dangerous Map",
+                color = Color.White,
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
@@ -57,7 +77,7 @@ fun LoginPage() {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "Email: ",
-                    color = Color.Black,
+                    color = Color.White,
                     modifier = Modifier.width(labelWidth)
                 )
                 TextField(
@@ -77,7 +97,7 @@ fun LoginPage() {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "Password: ",
-                    color = Color.Black,
+                    color = Color.White,
                     modifier = Modifier.width(labelWidth)
                 )
                 TextField(
@@ -102,8 +122,8 @@ fun LoginPage() {
                 isLoggedIn=true
             },
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1E3C72),
-                contentColor = Color.White
+                containerColor = Color.White,
+                contentColor = Color(0xFF1D3B71)
             ),
             modifier = Modifier
                 .align(Alignment.BottomCenter)

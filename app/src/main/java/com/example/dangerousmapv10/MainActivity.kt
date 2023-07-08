@@ -33,6 +33,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.composable
+import com.example.dangerousmapv10.Authantication.LoginPage
+import com.example.dangerousmapv10.Authantication.Register
 import com.example.dangerousmapv10.data.Point
 import com.example.dangerousmapv10.data.Role
 import com.example.dangerousmapv10.ui.theme.DarkBlue
@@ -176,27 +178,32 @@ class MainActivity : ComponentActivity() {
                                 onClick = { })
                         },
                         gesturesEnabled = false,
-                        ) {
+                    ) {
                         Scaffold(containerColor = Color.Black,
                             topBar = {
-                            SmallTopAppBar(
-                                title = { Text(text = "My app") },
+                                SmallTopAppBar(
+                                    title = { Text(text = "My app") },
 
-                                navigationIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Menu,
-                                        contentDescription = "none",
-                                        modifier = Modifier.clickable {
-                                            drawerState =
-                                                DrawerState(initialValue = DrawerValue.Open)
-                                        }
-                                    )
+                                    navigationIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Menu,
+                                            contentDescription = "none",
+                                            modifier = Modifier.clickable {
+                                                drawerState =
+                                                    DrawerState(initialValue = DrawerValue.Open)
+                                            }
+                                        )
 
-                                },
-                            )
-                        }) { contentPadding ->
-                            if (applicationContext.hasLocationPermission()){
-                                Map(Modifier.padding(contentPadding), navController = rememberNavController())
+                                    },
+                                )
+                            }) { contentPadding ->
+                            if (applicationContext.hasLocationPermission()) {
+                                Map(
+                                    Modifier.padding(contentPadding),
+                                    navController = rememberNavController()
+                                )
+                                //LoginPage()
+                                //Register()
                             }
 
 
@@ -208,41 +215,42 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
+//}
 
-fun Activity.openAppSettings() {
-    Intent(
-        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-        Uri.fromParts("package", packageName, null)
-    ).also(::startActivity)
-}
-
-data class DropDownItem(
-    val text: String
-)
-
-@Composable
-fun nav(){
-    val navController= rememberNavController()
-    NavHost(navController = navController, startDestination ="map"  ){
-        composable(route ="addpoint"){
-            AddPointToMap(navController)
-        }
-        composable(route ="map"){
-            Map(modifier = Modifier,navController)
-
-        }
+    fun Activity.openAppSettings() {
+        Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.fromParts("package", packageName, null)
+        ).also(::startActivity)
     }
 
-}
-@Preview(showBackground = true)
-@Composable
-fun MapPreview() {
-    DangerousMapV10Theme {
-        Map(modifier = Modifier,navController= rememberNavController())
+    data class DropDownItem(
+        val text: String
+    )
+
+    @Composable
+    fun nav() {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "map") {
+            composable(route = "addpoint") {
+                AddPointToMap(navController)
+            }
+            composable(route = "map") {
+                Map(modifier = Modifier, navController)
+
+            }
+        }
+
+    }
+
+    @Preview(showBackground = true)
+    @Composable
+    fun MapPreview() {
+        DangerousMapV10Theme {
+            Map(modifier = Modifier, navController = rememberNavController())
+        }
     }
 }
-
 
 
 

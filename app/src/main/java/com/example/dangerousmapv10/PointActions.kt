@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -45,11 +44,11 @@ fun AddPointToMap(navController: NavController) {
     val problemlevel = arrayOf("high", "medium", "low")
     var selectedlevel by remember { mutableStateOf(problemlevel[0]) }
     var expanded1 by remember { mutableStateOf(false) }
-    var discription by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF2F2F2))
+            .background(Color(0xFF1D3B71))
 
     ) {
 
@@ -133,36 +132,39 @@ fun AddPointToMap(navController: NavController) {
                 //disc
                 TextField(
 
-                    value = discription,
-                    onValueChange = { discription = it },
-                    label = { Text("Discription") },
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Description") },
                     colors = TextFieldDefaults.textFieldColors(
                         textColor = Black,
-                        containerColor = Color(0xFFD3D3D3),
+                        containerColor = Color.White,
                         unfocusedLabelColor = Color(0xFF696969),
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent
                     )
                 )
             }
+            Spacer(modifier = Modifier.height(50.dp))
+            Button(
+               // modifier = Modifier.align(Alignment.BottomCenter),
+                onClick = {
 
-        }
-        Button(
-            modifier = Modifier.align(Alignment.BottomCenter),
-            onClick = {
+                    navController.navigate("map")
+                    Toast.makeText(context, "point added successfully", Toast.LENGTH_SHORT).show()
 
-                navController.navigate("map")
+                },
 
-            },
-
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1E3C72),
-                contentColor = Color.White
-            ),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = Color(0xFF1D3B71)
+                ),
 
 
-            ) {
-            Text(text = "submit", fontSize = 24.sp)
+                ) {
+                Text(text = "add point", fontSize = 24.sp)
+            }
+
+
         }
 
 

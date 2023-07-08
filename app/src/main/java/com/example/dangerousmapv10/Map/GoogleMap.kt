@@ -169,8 +169,21 @@ fun Map(modifier: Modifier, navController: NavController) {
                 )
 
             }
-            if (isAdmin.equals(Role.ADMIN)){
-                //TODO add removePoint Button
+           /* if (isAdmin.equals(Role.ADMIN)){
+                Button(
+
+                    onClick = {
+
+
+
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF1E3C72),
+                        contentColor = Color.White
+                    ),
+                ) {
+                    Text(text = "removePoint", fontSize = 20.sp)
+                }
             }
             else{
                 Button(
@@ -187,6 +200,19 @@ fun Map(modifier: Modifier, navController: NavController) {
                     Text(text = "add point", fontSize = 20.sp)
                 }
 
+            }*/
+            Button(
+
+                onClick = {
+                    navController.navigate("addpoint")
+
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF1E3C72),
+                    contentColor = Color.White
+                ),
+            ) {
+                Text(text = "add point", fontSize = 20.sp)
             }
 
         }
