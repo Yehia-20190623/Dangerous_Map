@@ -4,7 +4,6 @@ package com.example.dangerousmapv10
 
 import android.Manifest
 import android.app.Activity
-import android.app.Notification.Action
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -39,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,32 +50,47 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.dangerousmapv10.API.SystemApiInterface
 import com.example.dangerousmapv10.Authantication.LoginPage
 import com.example.dangerousmapv10.Authantication.Register
 import com.example.dangerousmapv10.Map.Map
+import com.example.dangerousmapv10.data.Admin
 import com.example.dangerousmapv10.data.Point
-import com.example.dangerousmapv10.data.Role
+import com.example.dangerousmapv10.data.User
 import com.example.dangerousmapv10.location.LocationService
 import com.example.dangerousmapv10.ui.theme.DangerousMapV10Theme
 import com.example.dangerousmapv10.ui.theme.DarkBlue
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
+val localhost="192.168.79.178"
 
 
 lateinit var points: List<Point>
-var isAdmin: Role = Role.ADMIN
-var isLoggedIn = mutableStateOf<Boolean>(false)
+//var isLoggedIn = mutableStateOf<Boolean>(false)
 var nearestPoint: Point? = null
+//var loggedInUser: FirebaseUser? = null
+
+var isAdmin= mutableStateOf<Boolean>(false)
+var isUser=false
 val mAuth = FirebaseAuth.getInstance()
-var loggedInUser: FirebaseUser? = null
+var ApplicationAdmin: Admin?=null
+var userApplication: User?=null
 
 
 class MainActivity : ComponentActivity() {
     private val permissionsToRequest = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
         //Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.CAMERA
+        //Manifest.permission.CAMERA
     )
 
     @ExperimentalMaterial3Api
@@ -83,13 +98,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             DangerousMapV10Theme {
+                val nav= rememberNavController()
+                val coroutineScope = rememberCoroutineScope()
                 val context = LocalContext.current
                 Intent(applicationContext, LocationService::class.java).apply {
                     action = LocationService.ACTION_START
                     startService(this)
                 }
                 val viewModel = viewModel<MainViewModel>()
-                val dialogQueue = viewModel.visiblePermissionDialogQueue
                 val multiplePermissionResultLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.RequestMultiplePermissions(),
                     onResult = { perms ->
@@ -146,7 +162,9 @@ class MainActivity : ComponentActivity() {
 
                                 },
                                 selected = false,
-                                onClick = { })
+                                onClick = {
+                                    openAppSettings()
+                                })
                             Spacer(modifier = Modifier.height(8.dp))
                             NavigationDrawerItem(
                                 label = {
@@ -161,7 +179,7 @@ class MainActivity : ComponentActivity() {
                                 selected = false,
                                 onClick = { })
                             Spacer(modifier = Modifier.height(8.dp))
-                            if (isLoggedIn.value) {
+                            if(isUser || isAdmin.value){
                                 NavigationDrawerItem(
                                     label = {
                                         Row(modifier = Modifier.fillMaxWidth()) {
@@ -175,17 +193,21 @@ class MainActivity : ComponentActivity() {
                                     },
                                     selected = false,
                                     onClick = {
-                                        isLoggedIn.value = false
-                                        Toast.makeText(
-                                            context,
-                                            loggedInUser!!.email + " Logged out",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        FirebaseAuth.getInstance().signOut()
-                                        loggedInUser = null
+                                        if(isUser) {
+                                            isUser = false
+                                            Toast.makeText(context, userApplication!!.name + " Logged out", Toast.LENGTH_SHORT).show()
+                                            FirebaseAuth.getInstance().signOut()
+                                            userApplication = null
+                                        }else{
+                                            isAdmin.value = false
+                                            Toast.makeText(context,"Admin Logged out", Toast.LENGTH_SHORT).show()
+                                            FirebaseAuth.getInstance().signOut()
+                                            ApplicationAdmin = null
+                                        }
+                                        coroutineScope.launch {
+                                            logout()
+                                        }
                                     })
-                            } else {
-
                             }
                         },
                         gesturesEnabled = false,
@@ -225,7 +247,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-//}
+
 
     fun Activity.openAppSettings() {
         Intent(
@@ -267,7 +289,29 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
+suspend fun logout(){
+    val retrofit = Retrofit.Builder()
+        .baseUrl("http://$localhost:8080/system/")
+        .addConverterFactory( GsonConverterFactory.create())
+        .build()
+    val apiInterface: SystemApiInterface = retrofit.create(SystemApiInterface::class.java)
+    val call: Call<Boolean> = apiInterface.logout()
+    return suspendCoroutine { continuation ->
+        call.enqueue(object : Callback<Boolean> {
+            override fun onResponse(call: Call<Boolean>, response: Response<Boolean>) {
+                if (response.isSuccessful) {
+                    continuation.resume(Unit)
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    continuation.resumeWithException(Exception(errorBody))
+                }
+            }
+            override fun onFailure(call: Call<Boolean>, t: Throwable) {
+                print(t.message)
+            }
+            })
+        }
+}
 
 
 

@@ -9,5 +9,5 @@ import retrofit2.http.POST
 
 interface UserApiInterface {
     @POST("addPoint")
-    fun addPoints(@Body point: Point):Call<Response<Point>>;
+    fun addPoints(@Body point: Point):Call<ResponseBody>;
 }

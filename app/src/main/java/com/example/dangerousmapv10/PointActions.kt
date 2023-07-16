@@ -3,6 +3,7 @@
 package com.example.dangerousmapv10
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.location.Location
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -40,11 +41,14 @@ import com.example.dangerousmapv10.data.Point
 import com.example.dangerousmapv10.ui.theme.Black
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 @SuppressLint("MissingPermission")
@@ -60,7 +64,7 @@ fun AddPointToMap(navController: NavController) {
     val problemlevel = arrayOf("high", "medium", "low")
     var selectedlevel by remember { mutableStateOf(problemlevel[0]) }
     var expanded1 by remember { mutableStateOf(false) }
-    var description by remember { mutableStateOf("") }
+    var discription by remember { mutableStateOf("") }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -148,8 +152,8 @@ fun AddPointToMap(navController: NavController) {
                 //disc
                 TextField(
 
-                    value = description,
-                    onValueChange = { description = it },
+                    value = discription,
+                    onValueChange = { discription = it },
                     label = { Text("Description") },
                     colors = TextFieldDefaults.textFieldColors(
                         textColor = Black,
@@ -176,14 +180,16 @@ fun AddPointToMap(navController: NavController) {
                             }
                             coroutineScope.launch {
                                 addPoint(
-                                    latitude,
-                                    longitude,
-                                    description,
-                                    selectedlevel,
-                                    selectedText,
-                                    6668
+                                    latitude, longitude, discription, selectedlevel, selectedText,
+                                    userApplication!!.id, context
                                 )
+
                             }
+                            Toast.makeText(
+                                context,
+                                userApplication!!.name + " Sent request",
+                                Toast.LENGTH_LONG
+                            ).show()
                             navController.navigate("map")
                         }
                     } else {
@@ -220,7 +226,8 @@ suspend fun addPoint(
     description: String,
     dangerLevel: String,
     dangerousType: String,
-    userid: Int,
+    userid: String,
+    context: Context,
 ) {
     val point = Point()
     point.latitude = latitude
@@ -230,24 +237,29 @@ suspend fun addPoint(
     point.dangerousType = dangerousType
     point.userid = userid
     val retrofit = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:8080/user/")
+        .baseUrl("http://$localhost:8080/user/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
     val apiInterface: UserApiInterface = retrofit.create(UserApiInterface::class.java)
-    val call: Call<Response<Point>> = apiInterface.addPoints(point)
+    val call: Call<ResponseBody> = apiInterface.addPoints(point)
     return suspendCoroutine { continuation ->
-        call.enqueue(object : Callback<Response<Point>> {
+        call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
-                call: Call<Response<Point>>,
-                response: Response<Response<Point>>,
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>,
             ) {
-                response.headers().get("")
-                val status = response.code()
-                print(status)
+                if (response.isSuccessful) {
+                    val message = response.body()?.string()
+                    Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                    continuation.resume(Unit)
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    continuation.resumeWithException(Exception(errorBody))
+                }
             }
 
-            override fun onFailure(call: Call<Response<Point>>, t: Throwable) {
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 print("Failed")
             }
         })
